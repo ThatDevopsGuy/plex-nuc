@@ -1,0 +1,4 @@
+deb http://mirror.us.leaseweb.net/ubuntu/ trusty-security main restricted universe multiverse
+deb http://mirror.us.leaseweb.net/ubuntu/ trusty main restricted universe multiverse
+deb http://mirror.us.leaseweb.net/ubuntu/ trusty-backports main restricted universe multiverse
+deb http://mirror.us.leaseweb.net/ubuntu/ trusty-updates main restricted universe multiverse

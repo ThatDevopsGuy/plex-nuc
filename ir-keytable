@@ -1,0 +1,3 @@
+#!/bin/sh
+sleep 1 # needed to let the driver get ready...
+ir-keytable -c -p NEC,RC-6 -w /etc/rc_keymaps/apple_remote_sab
