@@ -35,10 +35,13 @@
     - name: Configure mount points
       mount: name={{ item.name }} src={{ item.src }} fstype=ext4 opts={{ item.opts }} state=mounted passno={{ item.passno }}
       with_items:
-        - { name: '/', src: '/dev/sda1', opts: 'noatime,discard', passno: '1' }
+        - { name: '/', src: '/dev/sda2', opts: 'noatime,discard', passno: '1' }
 
     # - name: Set timezone
     #   file: src=/usr/share/zoneinfo/America/Chicago dest=/etc/localtime state=link force=yes
+
+    - name: Add user to proper groups
+      user: name={{ user }} state=present groups={{user}},adm,cdrom,sudo,dip,plugdev,lpadmin,sambashare,video,audio
 
     - name: Write RC master files
       copy: src={{ item }} dest=/etc/{{ item }} owner=root group=root mode=0644
@@ -54,6 +57,12 @@
 
     - name: Write APT sources
       copy: src='sources.list' dest='/etc/apt/sources.list' owner='root' group='root' mode='644'
+
+    - name: Add APT keys
+      apt_key: url={{ item }} state=present
+      with_items:
+        - https://download.01.org/gfx/RPM-GPG-KEY-ilg
+        - https://download.01.org/gfx/RPM-GPG-KEY-ilg-2
 
     - name: Add repositories
       apt_repository: repo={{ item }} state=present
