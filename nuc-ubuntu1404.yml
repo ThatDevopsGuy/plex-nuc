@@ -23,6 +23,7 @@
       - ntp
       - plexhometheater
       - tree
+      - ubuntu-restricted-extras
       - vainfo
       - vim
       - xorg
