@@ -1,0 +1,9 @@
+==> apple_remote_sab <==
+# Apple Remote by Sab
+0x77e1d0e4 KEY_UP
+0x77e1b0e4 KEY_DOWN
+0x77e110e4 KEY_LEFT
+0x77e1e0e4 KEY_RIGHT
+0x77e1bae4 KEY_ENTER
+0x77e140e4 KEY_BACKSPACE
+0x77e17ae4 KEY_PLAY

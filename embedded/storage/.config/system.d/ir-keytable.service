@@ -1,0 +1,13 @@
+[Unit]
+Description=Start IR-Keytable
+After=plex.service
+Requires=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 5
+ExecStartPre=/usr/bin/systemctl stop eventlircd
+ExecStart=/usr/bin/ir-keytable -c -p NEC,RC-6 -w /etc/rc_keymaps/apple_remote_sab
+
+[Install]
+WantedBy=plex.target

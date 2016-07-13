@@ -1,0 +1,103 @@
+---
+- name: Configure NUC
+  hosts: nuc
+  gather_facts: no
+  sudo: yes
+
+  vars:
+    package_list:
+      - alsa-base
+      - alsa-utils
+      - fping
+      - htop
+      - i965-va-driver
+      - iftop
+      - intel-gpu-tools
+      - ir-keytable
+      - libva-drm1
+      - libva-egl1
+      - libva-intel-vaapi-driver 
+      - libva-tpi1 
+      - libva-wayland1 
+      - mesa-utils
+      - ntp
+      - plexhometheater
+      - tree
+      - ubuntu-restricted-extras
+      - vainfo
+      - vim
+      - xorg
+    rc_files:
+      - vimrc
+      - bashrc
+    user: sab
+
+  tasks:
+    - name: Configure mount points
+      mount: name={{ item.name }} src={{ item.src }} fstype=ext4 opts={{ item.opts }} state=mounted passno={{ item.passno }}
+      with_items:
+        - { name: '/', src: '/dev/sda2', opts: 'noatime,discard', passno: '1' }
+
+    # - name: Set timezone
+    #   file: src=/usr/share/zoneinfo/America/Chicago dest=/etc/localtime state=link force=yes
+
+    - name: Add user to proper groups
+      user: name={{ user }} state=present groups={{user}},adm,cdrom,sudo,dip,plugdev,lpadmin,sambashare,video,audio
+
+    - name: Write RC master files
+      copy: src={{ item }} dest=/etc/{{ item }} owner=root group=root mode=0644
+      with_items: rc_files
+
+    - name: Link RC files for root
+      file: src=/etc/{{ item }} dest=/root/.{{ item }} state=link force=yes
+      with_items: rc_files
+
+    - name: Link RC files for user
+      file: src=/etc/{{ item }} dest=/home/{{ user }}/.{{ item }} state=link force=yes
+      with_items: rc_files
+
+    - name: Write APT sources
+      copy: src='sources.list' dest='/etc/apt/sources.list' owner='root' group='root' mode='644'
+
+    - name: Add APT keys
+      apt_key: url={{ item }} state=present
+      with_items:
+        - https://download.01.org/gfx/RPM-GPG-KEY-ilg
+        - https://download.01.org/gfx/RPM-GPG-KEY-ilg-2
+
+    - name: Add repositories
+      apt_repository: repo={{ item }} state=present
+      with_items:
+        - "'ppa:plexapp/plexht'"
+        - "'deb https://download.01.org/gfx/ubuntu/14.04/main trusty main'"
+
+    - name: Upgrade all packages
+      apt: upgrade=dist update_cache=yes cache_valid_time=345600 force=yes # 4 days, in seconds
+
+    - name: Install common packages
+      apt: pkg={{ item }} state=present force=yes
+      with_items: package_list
+
+    - name: Create some directories
+      file: path=/etc/X11/xorg.conf.d/ state=directory owner=root group=root mode=0755
+
+    - name: Place some configuration files
+      copy: src={{ item.src }} dest={{ item.dest }} owner=root group=root mode=0644
+      with_items:
+        - { src: 'apple_remote_sab', dest: '/etc/rc_keymaps/apple_remote_sab' }
+        - { src: '20-intel.conf', dest: '/etc/X11/xorg.conf.d/20-intel.conf' }
+        - { src: 'nuvoton_cir.conf', dest: '/etc/modprobe.d/nuvoton_cir.conf' }
+        - { src: 'ir-keytable', dest: '/etc/init.d/ir-keytable' }
+        - { src: 'xinitrc', dest: '~{{ user }}/.xinitrc' }
+
+    - name: Set up autologin
+      template: src=tty1.j2 dest=/etc/init/tty1.conf owner=root group=root mode=0644
+
+    - name: Set permissions on init script
+      file: path=/etc/init.d/ir-keytable mode=0755
+
+    - name: Enable and start services
+      service: name={{ item }} state=started enabled=yes
+      with_items:
+        - ntp
+        - ir-keytable
